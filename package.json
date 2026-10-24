@@ -1,0 +1,20 @@
+{
+  "name": "delta-force-auto-redeem",
+  "version": "1.0.0",
+  "description": "Tool tự động quét, lọc trùng và nhập mã Giftcode game Delta Force qua Chrome Remote Debugging | Zero Setup",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "delta-force",
+    "garena",
+    "auto-redeem",
+    "giftcode",
+    "cdkey",
+    "cdp",
+    "automation"
+  ],
+  "author": "TrongBVD",
+  "license": "MIT"
+}

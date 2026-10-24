@@ -1,0 +1,15 @@
+# Chrome User Data (Bảo mật phiên đăng nhập)
+chrome_profile/
+
+# Logs và sao lưu
+*.log
+redeem_log.txt
+*_backup.txt
+
+# Node
+node_modules/
+package-lock.json
+
+# Hệ thống
+.DS_Store
+Thumbs.db

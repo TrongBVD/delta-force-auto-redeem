@@ -1,0 +1,7 @@
+# Dán các mã giftcode của bạn vào đây (mỗi mã 1 dòng)
+# Các dòng bắt đầu bằng dấu # hoặc để trống sẽ tự động được bỏ qua
+# Sau khi dán mã, lưu file này lại (Ctrl + S) rồi chạy file "2_Chay_Nhap_Code.bat"
+
+DFVNHackclaw1
+DFVNVyron2
+DFVNUluru3

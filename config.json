@@ -1,0 +1,10 @@
+{
+  "chromeDebugPort": 9222,
+  "codesFile": "codes.txt",
+  "delayBetweenCodesMs": 2000,
+  "autoBackup": true,
+  "logFile": "redeem_log.txt",
+  "removeInvalidCodes": true,
+  "removeDuplicates": true,
+  "targetUrl": "https://redeem.df.garena.sg/vi/cdkgarena.html"
+}
