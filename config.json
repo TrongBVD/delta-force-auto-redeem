@@ -1,7 +1,7 @@
 {
   "chromeDebugPort": 9222,
   "codesFile": "codes.txt",
-  "delayBetweenCodesMs": 2000,
+  "delayBetweenCodesMs": 1200,
   "autoBackup": true,
   "logFile": "redeem_log.txt",
   "removeInvalidCodes": true,
