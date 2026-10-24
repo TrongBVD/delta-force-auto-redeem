@@ -3,7 +3,6 @@
  * Cách dùng: Mở https://redeem.df.garena.sg/vi/cdkgarena.html -> Bấm F12 -> Chọn Console -> Dán toàn bộ mã này vào rồi bấm Enter!
  */
 (async function runDeltaForceRedeem() {
-  // Danh sách 214 mã hoạt động đã kiểm duyệt
   const codes = [
     "PWC260419S65", "DFELEVATE16", "DFAWAKEN56", "PWC260418S84", "PWC260418S11",
     "PWC260418S72", "PWC260419S67", "PWC260419S84", "DFCCOPNOW111", "DFCCOPGIST88",
@@ -51,8 +50,8 @@
     "DFOS5Y7Z9A", "DFOS7B1C3D", "PzDArbxYuL2f6RcaWE7T", "DFUT2025FINALS4216", "DFUZIRAT47"
   ];
 
-  // Hook XHR để bắt kết quả chính xác
-  if (!window.__redeemHooked) {
+  function hookNetworkInterception() {
+    if (window.__redeemHooked) return;
     window.__redeemHooked = true;
     window.__lastRedeemResult = null;
     const origOpen = XMLHttpRequest.prototype.open;
@@ -62,11 +61,12 @@
       return origOpen.apply(this, arguments);
     };
     XMLHttpRequest.prototype.send = function() {
-      if (this.__url && this.__url.includes('RedeemCDKey')) {
+      if (this.__url?.includes('RedeemCDKey')) {
         this.addEventListener('load', () => {
           try {
             window.__lastRedeemResult = JSON.parse(this.responseText);
-          } catch (e) {
+          } catch {
+            /* Phản hồi không phải dạng json */
             window.__lastRedeemResult = { error: this.responseText };
           }
         });
@@ -76,7 +76,11 @@
   }
 
   function dismissDialogs() {
-    try { if (window.dialog && window.dialog.hide) window.dialog.hide(); } catch (_) {}
+    try {
+      window.dialog?.hide?.();
+    } catch {
+      /* Bỏ qua nếu dialog không mở */
+    }
     const overlay = document.getElementById('_overlay_');
     if (overlay) overlay.style.display = 'none';
     const diaTips = document.getElementById('diaTips');
@@ -89,78 +93,98 @@
     window.superTipsTime = null;
   }
 
-  // Tạo giao diện trực quan nhỏ gọn ngay trên trang
-  const ui = document.createElement('div');
-  ui.style.cssText = 'position:fixed;top:20px;right:20px;z-index:999999;background:#1e1e24;color:#fff;padding:16px 20px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5);font-family:sans-serif;font-size:14px;width:320px;border:1px solid #444;';
-  ui.innerHTML = `
-    <div style="font-weight:bold;font-size:16px;margin-bottom:8px;color:#00ff88;display:flex;justify-content:space-between;">
-      <span>🎮 Delta Force Auto Redeem</span>
-      <span id="df-close" style="cursor:pointer;color:#aaa;">✖</span>
-    </div>
-    <div style="margin-bottom:6px;">Tiến trình: <span id="df-progress" style="font-weight:bold;">0/${codes.length}</span></div>
-    <div style="background:#333;border-radius:6px;height:10px;overflow:hidden;margin-bottom:10px;">
-      <div id="df-bar" style="background:#00ff88;width:0%;height:100%;transition:width 0.3s;"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
-      <span style="color:#00ff88;">Thành công: <b id="df-ok">0</b></span>
-      <span style="color:#ff5555;">Thất bại: <b id="df-fail">0</b></span>
-    </div>
-    <div id="df-status" style="font-size:12px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#2a2a32;padding:6px 10px;border-radius:6px;">Đang chuẩn bị...</div>
-  `;
-  document.body.appendChild(ui);
-  document.getElementById('df-close').onclick = () => ui.remove();
+  function createStatusUI(totalCount) {
+    const ui = document.createElement('div');
+    ui.style.cssText = 'position:fixed;top:20px;right:20px;z-index:999999;background:#1e1e24;color:#fff;padding:16px 20px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5);font-family:sans-serif;font-size:14px;width:320px;border:1px solid #444;';
+    ui.innerHTML = `
+      <div style="font-weight:bold;font-size:16px;margin-bottom:8px;color:#00ff88;display:flex;justify-content:space-between;">
+        <span>🎮 Delta Force Auto Redeem</span>
+        <span id="df-close" style="cursor:pointer;color:#aaa;">✖</span>
+      </div>
+      <div style="margin-bottom:6px;">Tiến trình: <span id="df-progress" style="font-weight:bold;">0/${totalCount}</span></div>
+      <div style="background:#333;border-radius:6px;height:10px;overflow:hidden;margin-bottom:10px;">
+        <div id="df-bar" style="background:#00ff88;width:0%;height:100%;transition:width 0.3s;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+        <span style="color:#00ff88;">Thành công: <b id="df-ok">0</b></span>
+        <span style="color:#ff5555;">Thất bại: <b id="df-fail">0</b></span>
+      </div>
+      <div id="df-status" style="font-size:12px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#2a2a32;padding:6px 10px;border-radius:6px;">Đang chuẩn bị...</div>
+    `;
+    document.body.appendChild(ui);
+    document.getElementById('df-close').onclick = () => ui.remove();
+    return ui;
+  }
 
-  let okCount = 0;
-  let failCount = 0;
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
-  console.log(`[Auto Redeem] Bắt đầu nhập ${codes.length} mã...`);
+  async function pollRedeemResult(attempts = 0, maxAttempts = 35) {
+    if (window.__lastRedeemResult) {
+      return window.__lastRedeemResult;
+    }
+    if (attempts >= maxAttempts) {
+      return null;
+    }
+    await delay(100);
+    return pollRedeemResult(attempts + 1, maxAttempts);
+  }
 
-  for (let i = 0; i < codes.length; i++) {
-    const code = codes[i];
-    document.getElementById('df-progress').innerText = `${i + 1}/${codes.length}`;
-    document.getElementById('df-bar').style.width = `${((i + 1) / codes.length * 100).toFixed(1)}%`;
-    document.getElementById('df-status').innerText = `Đang thử: ${code}`;
-
+  async function executeSingleCode(code) {
     window.__lastRedeemResult = null;
     const input = document.querySelector('.exc-input');
-    if (!input) {
-      alert('Không tìm thấy ô nhập code! Hãy đảm bảo bạn đang ở trang: https://redeem.df.garena.sg/vi/cdkgarena.html');
-      ui.remove();
-      return;
-    }
+    if (!input) return null;
 
     input.value = code;
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
 
     const btn = document.querySelector('.btn-exchange');
-    if (btn) btn.click();
+    btn?.click?.();
 
-    // Chờ kết quả
-    let res = null;
-    for (let wait = 0; wait < 35; wait++) {
-      await new Promise(r => setTimeout(r, 100));
-      if (window.__lastRedeemResult) {
-        res = window.__lastRedeemResult;
-        break;
-      }
+    return pollRedeemResult();
+  }
+
+  hookNetworkInterception();
+  const inputEl = document.querySelector('.exc-input');
+  if (!inputEl) {
+    alert('Không tìm thấy ô nhập code! Hãy đảm bảo bạn đang ở trang: https://redeem.df.garena.sg/vi/cdkgarena.html');
+    return;
+  }
+
+  createStatusUI(codes.length);
+  const stats = { ok: 0, fail: 0 };
+  console.log(`[Auto Redeem] Bắt đầu nhập ${codes.length} mã...`);
+
+  async function processCodeRecursively(index) {
+    if (index >= codes.length) {
+      document.getElementById('df-status').innerText = '🎉 Hoàn tất nhận thưởng!';
+      document.getElementById('df-status').style.color = '#00ff88';
+      alert(`Đã hoàn tất! Nhận thành công: ${stats.ok} mã. Vui lòng kiểm tra hòm thư in-game!`);
+      return;
     }
 
-    if (res && res.code === 0) {
-      okCount++;
-      document.getElementById('df-ok').innerText = okCount;
-      console.log(`[${i + 1}/${codes.length}] ${code} -> THÀNH CÔNG!`);
+    const code = codes[index];
+    document.getElementById('df-progress').innerText = `${index + 1}/${codes.length}`;
+    document.getElementById('df-bar').style.width = `${((index + 1) / codes.length * 100).toFixed(1)}%`;
+    document.getElementById('df-status').innerText = `Đang thử: ${code}`;
+
+    const res = await executeSingleCode(code);
+    if (res?.code === 0) {
+      stats.ok++;
+      document.getElementById('df-ok').innerText = String(stats.ok);
+      console.log(`[${index + 1}/${codes.length}] ${code} -> THÀNH CÔNG!`);
     } else {
-      failCount++;
-      document.getElementById('df-fail').innerText = failCount;
-      console.log(`[${i + 1}/${codes.length}] ${code} -> ${res ? res.msg : 'Hết giờ'}`);
+      stats.fail++;
+      document.getElementById('df-fail').innerText = String(stats.fail);
+      console.log(`[${index + 1}/${codes.length}] ${code} -> ${res?.msg ?? 'Hết giờ'}`);
     }
 
     dismissDialogs();
-    await new Promise(r => setTimeout(r, 2000));
+    await delay(1200);
+    return processCodeRecursively(index + 1);
   }
 
-  document.getElementById('df-status').innerText = '🎉 Hoàn tất nhận thưởng!';
-  document.getElementById('df-status').style.color = '#00ff88';
-  alert(`Đã hoàn tất! Nhận thành công: ${okCount} mã. Vui lòng kiểm tra hòm thư in-game!`);
-})();
+  await processCodeRecursively(0);
+})().catch(err => console.error('[Delta Force Auto Redeem Error]:', err));
