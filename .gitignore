@@ -1,12 +1,15 @@
 # Chrome User Data (Bảo mật phiên đăng nhập)
 chrome_profile/
 
+# Node portable
+bin/
+
 # Logs và sao lưu
 *.log
 redeem_log.txt
 *_backup.txt
 
-# Node
+# Node modules
 node_modules/
 package-lock.json
 
