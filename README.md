@@ -7,6 +7,7 @@
 
 ## ✨ Tính Năng Nổi Bật
 
+- 🎁 **Có sẵn 214 mã Giftcode hoạt động**: File `codes.txt` đã được kiểm duyệt và nạp sẵn 214 mã nhận thưởng thành công. Người dùng khác chỉ cần tải về và chạy là nhận quà ngay!
 - 🚀 **Zero Dependency (Không cần cài thư viện)**: Chạy hoàn toàn bằng thư viện native có sẵn của Node.js, không cần chạy `npm install` hay tải các thư viện puppeteer/selenium nặng nề.
 - 🖱️ **1-Click Chạy Ngay**: Cung cấp sẵn các file `.bat` tiện lợi, người dùng chỉ cần nhấn đúp chuột là có thể chạy ngay lập tức.
 - 🧹 **Tự động lọc trùng lặp**: Quét và loại bỏ tất cả các mã trùng nhau trước khi gửi yêu cầu.
@@ -26,7 +27,7 @@
 ## 🚀 Hướng Dẫn Sử Dụng (Chỉ với 3 Bước)
 
 ### Bước 1: Chuẩn bị mã code
-Mở file `codes.txt` trong thư mục và dán danh sách các mã giftcode của bạn vào (mỗi mã 1 dòng), sau đó bấm **Ctrl + S** để lưu.
+Trong file `codes.txt` **đã có sẵn 214 mã hoạt động**. Bạn có thể dùng luôn danh sách này hoặc dán thêm các mã giftcode mới của bạn vào (mỗi mã 1 dòng).
 
 ### Bước 2: Mở Chrome
 Nhấn đúp chuột vào file **`1_Mo_Chrome.bat`**.  
